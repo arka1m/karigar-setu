@@ -25,7 +25,10 @@ init_db()
 @app.route('/index.html')
 def index():
     """Main Application Interface (Artisan App + Buyer Discovery + SIH Judge Matrix)"""
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception:
+        return send_from_directory(BASE_DIR, 'index.html')
 
 @app.route('/health')
 def health_check():

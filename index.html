@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karigar Setu (v2 — Gap-Verified) | AI Market Linkage for Artisans</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- App Header Bar -->
+  <header class="app-header-bar">
+    <div class="brand-title">
+      <div class="brand-logo-badge">
+        <span class="material-icons">palette</span>
+      </div>
+      <div>
+        <span>Karigar Setu</span>
+        <span style="font-size:0.75rem; font-weight:400; opacity:0.8; display:block;">v2 — Gap-Verified Platform</span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <span class="sih-badge">SIH 2026 Entry</span>
+      <div class="mode-switcher">
+        <button class="mode-btn active" id="btn-mode-artisan" onclick="switchAppMode('artisan')">Artisan App</button>
+        <button class="mode-btn" id="btn-mode-buyer" onclick="switchAppMode('buyer')">Buyer Store</button>
+        <button class="mode-btn" id="btn-mode-judge" onclick="switchAppMode('judge')">SIH Judge Matrix</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Wrapper -->
+  <main class="main-wrapper">
+
+    <!-- Mobile Phone Frame Container -->
+    <div class="phone-frame">
+      <!-- Status Bar -->
+      <div class="phone-status-bar">
+        <span>9:41 AM</span>
+        <span>Karigar Setu 5G</span>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span class="material-icons" style="font-size:14px;">wifi</span>
+          <span class="material-icons" style="font-size:14px;">battery_full</span>
+        </div>
+      </div>
+
+      <!-- Dynamic Screen Content -->
+      <div class="phone-screen" id="phone-screen">
+        <!-- Views rendered by JS -->
+      </div>
+
+      <!-- Bottom Nav Bar -->
+      <nav class="phone-bottom-nav">
+        <button class="nav-item active" id="nav-home" onclick="navigateToFlow('home')">
+          <span class="material-icons nav-icon">home</span>
+          <span>Home</span>
+        </button>
+        <button class="nav-item" id="nav-capture" onclick="navigateToFlow('capture')">
+          <span class="material-icons nav-icon" style="font-size:1.6rem; color:var(--color-terracotta);">add_circle</span>
+          <span>Add Item</span>
+        </button>
+        <button class="nav-item" id="nav-catalog" onclick="navigateToFlow('catalog')">
+          <span class="material-icons nav-icon">grid_view</span>
+          <span>Products</span>
+        </button>
+        <button class="nav-item" id="nav-buyer" onclick="navigateToFlow('buyer_browse')">
+          <span class="material-icons nav-icon">storefront</span>
+          <span>Buyer Market</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- SIH 2026 Judge Panel (Side View) -->
+    <aside class="sih-judge-panel" id="sih-judge-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2>SIH 2026 Gap Resolution Engine</h2>
+          <p style="margin-bottom:0;">Live verification of closed legacy platform limitations</p>
+        </div>
+        <span class="material-icons" style="color:var(--color-terracotta); font-size:2rem;">verified</span>
+      </div>
+
+      <div class="ks-card" style="background:#FDF4F2; border-color:var(--color-terracotta);">
+        <h3 style="color:var(--color-terracotta); margin-bottom:4px;">Core Differentiator Checklist</h3>
+        <p style="font-size:0.82rem; margin-bottom:0;">Every action in the artisan mobile frame is mapped live to closing a specific verified limitation of India Handmade, Etsy, Kreate, or Unfade.</p>
+      </div>
+
+      <div id="gap-matrix-container">
+        <!-- Matrix items populated dynamically -->
+      </div>
+    </aside>
+
+  </main>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
