@@ -149,10 +149,13 @@ def seed_initial_data(conn):
             VALUES (?, ?, ?, ?, ?)
         ''', crafts_data)
 
-    # Check primary sample artisan
-    cursor.execute("SELECT COUNT(*) FROM artisans")
+    # Ensure sample artisan, product, and certificate exist
+    sample_artisan_id = "artisan_ramesh_01"
+    prod_id = "prod_terracotta_horse_01"
+    cert_id = "CERT-KS-2026-883921"
+    
+    cursor.execute("SELECT COUNT(*) FROM artisans WHERE id = ?", (sample_artisan_id,))
     if cursor.fetchone()[0] == 0:
-        sample_artisan_id = "artisan_ramesh_01"
         cursor.execute('''
             INSERT INTO artisans (id, name, phone, preferred_language, region, craft_cluster, gst_or_udyam_id, bank_account_masked, kyc_status, monthly_earnings)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -169,9 +172,8 @@ def seed_initial_data(conn):
             42500.0
         ))
 
-        # Seed sample product
-        prod_id = "prod_terracotta_horse_01"
-        cert_id = "CERT-KS-2026-883921"
+    cursor.execute("SELECT COUNT(*) FROM products WHERE id = ?", (prod_id,))
+    if cursor.fetchone()[0] == 0:
         cursor.execute('''
             INSERT INTO products (
                 id, artisan_id, title, story, category, materials, region, tags,
@@ -198,7 +200,8 @@ def seed_initial_data(conn):
             cert_id
         ))
 
-        # Seed sample certificate
+    cursor.execute("SELECT COUNT(*) FROM certificates WHERE id = ?", (cert_id,))
+    if cursor.fetchone()[0] == 0:
         hash_sig = "a8f9c7e4120b6689d14eef931049581a96572e819b2512f4581c3d6a908f22e1"
         cursor.execute('''
             INSERT INTO certificates (id, product_id, artisan_id, hash_signature, qr_payload, verification_url)
