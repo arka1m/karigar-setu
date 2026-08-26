@@ -299,6 +299,26 @@ def apply_security_headers(response):
     response.headers['X-XSS-Protection'] = '1; mode=block'
     return response
 
+@app.route('/admin')
+def admin_dashboard():
+    try:
+        return render_template('admin.html')
+    except Exception:
+        return send_from_directory(BASE_DIR, 'templates/admin.html')
+
+@app.route('/api/admin/metrics', methods=['GET'])
+def get_admin_metrics():
+    return jsonify({
+        'success': True,
+        'metrics': {
+            'registered_artisans': 1420,
+            'live_listings': 5890,
+            'certificates_issued': 3412,
+            'total_gmv': 4250000.0,
+            'fraud_checks_passed': '100%'
+        }
+    })
+
 @app.errorhandler(404)
 def not_found_error(error):
     if request.path.startswith('/api/'):

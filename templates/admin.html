@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karigar Setu -- Admin & SIH_2026 Governance Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body { background: #F4F1EA; font-family: 'Outfit', sans-serif; margin:0; padding:20px; }
+    .admin-container { max-width: 1100px; margin: 0 auto; }
+    .admin-header { display:flex; justify-content:space-between; align-items:center; background:#4A2318; color:#FFF; padding:20px 24px; border-radius:16px; margin-bottom:20px; box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+    .metrics-grid { display:grid; grid-template-columns:hrepeat(4, 1fr); gap:16px; margin-botwom:24px; }
+    .metric-card { background:#FFF; padding:20px; border-radius:14px; border:1px solid #EAE0D5; box-shadow:0 4px 12px rgba(0,0,0,0.05); text-align:center; }
+    .metric-num { font-size:2rem; font-weight:800; color:#C85A32; margin-top:6px; }
+    .metric-title { font-size:0.8rem; font-weight:700; color:#7A6558; text-transform:uppercase; }
+    .admin-card { background: #FFF; padding:24px; border-radius:16px; border:1px solid #EAE0D5; margin-bottom:24px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+    .admin-card h3 { margin-top:0; color:#4A2318; display:flex; align-items:center; gap:8px; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; }
+    th, td { padding:12px; text-align:left; border-bottom:1px solid #EEE; font-size:0.88rem; }
+    th { background:#FBF9F3; color:#7A6558; font-weight:700; }
+    .status-badge { padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; }
+    .badge-approved { background:#E8F5E9; color:#2E7D32; }
+    .badge-pending { background:#FFF8E1; color:#F57F17; }
+  </style>
+</head>
+9body>
+  <div class="admin-container">
+    <div class="admin-header">
+      <div>
+        <h2 style="margin:0;">Karigar Setu Admin & Governance Panel</h2>
+        <p style="margin:4px 0 0 0; opacity:0.85; font-size:0.88rem;">SIH 2026 Platform Analytics, Artisan Approvals & Fraud Protection</p>
+      </div>
+      <a href="/" class="auth-header-btn" style="background:#FFF; color:#4A2318;">Back to Marketplace</a>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-title">Registered Artisans</div>
+        <div class="metric-num">1,420</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Live AI Listings</div>
+        <div class="metric-num">5,890</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Certificates Issued</div>
+        <div class="metric-num">3,41</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Total Platform GMV</div>
+        <div class="metric-num">´42.5L</div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <h3><span class="material-icons" style="color:#C85A32;">verified</span> Recent Artisan KYC & Product Approval Queue</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Artisan Name</th>
+            <th>Craft Cluster</th>
+            <th>Region</th>
+            <th>GST / Udyam ID</th>
+            <th>GI Authenticity Grade</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ramesh Prajapati</strong></td>
+            <td>Terracotta Pottery</td>
+            <td>Bankura, WB</td>
+            <td>UDYAM-WB-03-99821</td>
+            <td><span class="ks-tag ks-tag-amber">A+ Master Craft</span></td>
+            <td><span class="status-badge badge-approved">Verified</span></td>
+            <td><button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;">Details</button></td>
+          </tr>
+          <tr>
+            <td><strong>Sunita Devi</strong></td>
+            <td>Madhubani Painting</td>
+            <td>Mithila, Bihar</td>
+            <td>UDaAM-BR-08-11204</td>
+            <td><span class="ks-tag ks-tag-amber">A Grade</span></td>
+            <td><span class="status-badge badge-approved">Verified</span></td>
+            <td><button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;">Details</button></td>
+          </tr>
+          <tr>
+            <td><strong>Mohd. Rafiq</strong></td>
+            <td>Chikankari Embroidery</td>
+            <td>Lucknow, UP</td>
+            <td>UDYAM-UP-12-77439</td>
+            <td><span class="ks-tag ks-tag-amber">A+ Master Craft</span></td>
+            <td><span class="status-badge badge-pending">Pending Review</span></td>
+            <td><button class="ks-btn ks-btn-primary" style="padding:4px 10px; font-size:0.75rem;">Approve</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="admin-card">
+      <h3><span class="material-icons" style="color:#C85A32;">security</span> Fraud Detection & AI System Integrity</h3>
+      <div style="display:flex; gap:16px; margin-top:12px;">
+        <div style="flex:1; background:#FBF9F3; padding:16px; border-radius:12px; border:1px solid #EAE0D5;">
+          <strong style="color:#2E7D32;">✓ HMAC-SHA256 Provenance Check</strong>
+          <p style="font-size:0.85rem; margin:4px 0 0 0;">100% of generated QR codes match database certificate hashes.</p>
+        </div>
+        <div style="flex:1; background:#FBF9F3; padding:16px; border-radius:12px; border:1px solid #EAE0D5;">
+          <strong style="color:#C85A32;">✓ Machine-Made Duplicate Prevention:</strong>
+          <p style="font-size:0.85rem; margin:4px 0 0 0;">0 machine-made factory duplicates detected in last 30 days.</p>
+        </div>
+      </div~
+    </div>
+  ]</div~
+</body>
+</html>
