@@ -9,7 +9,7 @@ from flask import Blueprint, request, jsonify, session, render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_db
 
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 # Password complexity regex: >= 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
 PASSWORD_REGEX = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_~\-+=])[A-Za-z\d!@#$%^&*(),.?":{}|<>_~\-+=]{8,}$')
@@ -41,7 +41,7 @@ def generate_csrf_token():
 def verify_csrf_token(token):
     return session.get('csrf_token') and session.get('csrf_token') == token
 
-@auth_bp.route('/api/auth/status', methods=['GET'])
+@auth_bp.route('/status', methods=['GET'])
 def get_auth_status():
     csrf_token = generate_csrf_token()
     user_id = session.get('user_id')
@@ -82,7 +82,7 @@ def get_auth_status():
         'user': None
     })
 
-@auth_bp.route('/api/auth/signup', methods=['POST'])
+@auth_bp.route('/signup', methods=['POST'])
 def signup():
     data = request.json or request.form or {}
     
@@ -147,7 +147,7 @@ def signup():
         }
     })
 
-@auth_bp.route('/api/auth/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.json or request.form or {}
     
@@ -230,7 +230,7 @@ def login():
         }
     })
 
-@auth_bp.route('/api/auth/forgot-password', methods=['POST'])
+@auth_bp.route('/forgot-password', methods=['POST'])
 def forgot_password():
     data = request.json or request.form or {}
     email = sanitize_input(data.get('email', '')).lower()
@@ -266,7 +266,7 @@ def forgot_password():
         'otp_demo': otp_code # Included for immediate demo testing
     })
 
-@auth_bp.route('/api/auth/verify-otp', methods=['POST'])
+@auth_bp.route('/verify-otp', methods=['POST'])
 def verify_otp():
     data = request.json or request.form or {}
     email = sanitize_input(data.get('email', '')).lower()
@@ -296,7 +296,7 @@ def verify_otp():
         'message': 'OTP code verified successfully! You may now create your new password.'
     })
 
-@auth_bp.route('/api/auth/reset-password', methods=['POST'])
+@auth_bp.route('/reset-password', methods=['POST'])
 def reset_password():
     data = request.json or request.form or {}
     email = sanitize_input(data.get('email', '')).lower()
@@ -334,7 +334,7 @@ def reset_password():
         'message': 'Password reset successful! You can now log in with your new password.'
     })
 
-@auth_bp.route('/api/auth/guest', methods=['POST'])
+@auth_bp.route('/guest', methods=['POST'])
 def continue_as_guest():
     session.clear()
     session['is_guest'] = True
@@ -342,12 +342,12 @@ def continue_as_guest():
     generate_csrf_token()
     return jsonify({'success': True, 'is_guest': True, 'message': 'Browsing in Guest Mode.'})
 
-@auth_bp.route('/api/auth/logout', methods=['POST'])
+@auth_bp.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({'success': True, 'message': 'Logged out successfully.'})
 
-@auth_bp.route('/api/auth/profile', methods=['PUT'])
+@auth_bp.route('/profile', methods=['PUT'])
 def update_profile():
     if not session.get('user_id'):
         return jsonify({'success': False, 'message': 'Authentication required.'}), 401
@@ -377,7 +377,7 @@ def update_profile():
         }
     })
 
-@auth_bp.route('/api/auth/change-password', methods=['POST'])
+@auth_bp.route('/change-password', methods=['POST'])
 def change_password():
     if not session.get('user_id'):
         return jsonify({'success': False, 'message': 'Authentication required.'}), 401
