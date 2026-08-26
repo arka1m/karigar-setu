@@ -7,8 +7,12 @@ from datetime import datetime
 DB_FILE = os.path.join(os.path.dirname(__file__), 'karigar_setu.db')
 
 def get_db():
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, timeout=30.0)
     conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+    except Exception:
+        pass
     return conn
 
 def init_db():
