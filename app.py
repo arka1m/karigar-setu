@@ -8,18 +8,29 @@ from ai_engine import analyze_product_image, generate_ai_draft, calculate_fair_p
 from certificate_engine import issue_authenticity_certificate, generate_qr_code_base64
 from marketplace_adapters import sync_product_to_channels, ADAPTERS
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'karigar_setu_secret_key_sih_2026')
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize Database on boot
 init_db()
 
 @app.route('/')
+@app.route('/index.html')
 def index():
     """Main Application Interface (Artisan App + Buyer Discovery + SIH Judge Matrix)"""
     return render_template('index.html')
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Render monitoring"""
+    return jsonify({'status': 'healthy', 'app': 'Karigar Setu', 'version': 'v2'}), 200
 
 @app.route('/api/artisan', methods=['GET'])
 def get_artisan():
