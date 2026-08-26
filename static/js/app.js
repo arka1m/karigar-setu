@@ -1222,3 +1222,56 @@ async function toggleWishlist(productId) {
     console.error("Wishlist error:", err);
   }
 }
+
+/* ==========================================================================
+   MULTI-LANGUAGE (i18n) TRANSLATION CONTROLLER
+   ========================================================================== */
+
+const TRANSLATIONS = {
+  en: {
+    nav_login: 'Login',
+    nav_signup: 'Signup',
+    mode_artisan: 'Artisan App',
+    mode_buyer: 'Buyer Store',
+    mode_judge: 'SIH Judge Matrix'
+  },
+  hi: {
+    nav_login: 'लॉग इन',
+    nav_signup: 'साइन अप',
+    mode_artisan: 'कारीगर ऐप',
+    mode_buyer: 'खरीदार स्टोर',
+    mode_judge: 'न्यायाधीश मैट्रिक्स'
+  },
+  bn: {
+    nav_login: 'লগইন',
+    nav_signup: 'সাইন আপ',
+    mode_artisan: 'কারুশিল্পী অ্যাপ',
+    mode_buyer: 'ক্রেতা স্টোর',
+    mode_judge: 'বিচারক ম্যাট্রিক্স'
+  },
+  or: {
+    nav_login: 'ଲଗଇନ୍',
+    nav_signup: 'ସାଇନ୍ ଅପ୍',
+    mode_artisan: 'କାରିଗର ଆପ୍',
+    mode_buyer: 'କ୍ରେତା ଷ୍ଟୋର୍',
+    mode_judge: 'ବିଚାରପତି ମାଟ୍ରିକ୍ସ'
+  }
+};
+
+function changeLanguage(lang) {
+  state.language = lang;
+  localStorage.setItem('karigar_lang', lang);
+  const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) {
+      el.textContent = dict[key];
+    }
+  });
+
+  const selector = document.getElementById('language-selector');
+  if (selector) selector.value = lang;
+  
+  showToast(`Language changed to ${lang.toUpperCase()}`);
+}

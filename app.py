@@ -306,6 +306,20 @@ def admin_dashboard():
     except Exception:
         return send_from_directory(BASE_DIR, 'templates/admin.html')
 
+@app.route('/login')
+def login_page():
+    try:
+        return render_template('login.html')
+    except Exception:
+        return send_from_directory(BASE_DIR, 'login.html')
+
+@app.route('/signup')
+def signup_page():
+    try:
+        return render_template('signup.html')
+    except Exception:
+        return send_from_directory(BASE_DIR, 'signup.html')
+
 @app.route('/api/admin/metrics', methods=['GET'])
 def get_admin_metrics():
     return jsonify({

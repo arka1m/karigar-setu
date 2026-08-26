@@ -36,12 +36,27 @@
         <span id="cart-badge-count" class="cart-badge" style="display:none;">0</span>
       </button>
 
+      <!-- Language Selector -->
+      <select class="auth-header-btn" id="language-selector" onchange="changeLanguage(this.value)" style="background:#FFF; color:#4A2318; border:1px solid #EAE0D5; font-weight:700; cursor:pointer; padding:6px 12px; border-radius:20px;">
+        <option value="en">🌐 English</option>
+        <option value="hi">🌐 हिंदी (Hindi)</option>
+        <option value="bn">🌐 বাংলা (Bengali)</option>
+        <option value="or">🌐 ଓଡ଼ିଆ (Odia)</option>
+      </select>
+
+      <!-- Direct Nav Buttons -->
+      <a href="/login" class="auth-header-btn" style="text-decoration:none;">
+        <span class="material-icons">login</span>
+        <span data-i18n="nav_login">Login</span>
+      </a>
+      <a href="/signup" class="auth-header-btn" style="text-decoration:none; background:#C85A32; color:#FFF;">
+        <span class="material-icons">person_add</span>
+        <span data-i18n="nav_signup">Signup</span>
+      </a>
+
       <!-- User Authentication Widget -->
       <div class="user-auth-widget" id="user-auth-widget">
-        <button class="auth-header-btn" onclick="openAuthModal('login')">
-          <span class="material-icons">account_circle</span>
-          <span>Sign In</span>
-        </button>
+        <!-- Auth status widget -->
       </div>
     </div>
   </header>
