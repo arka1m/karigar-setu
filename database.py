@@ -132,6 +132,59 @@ def init_db():
     )
     ''')
 
+    # Create Orders Table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        buyer_name TEXT NOT NULL,
+        buyer_email TEXT NOT NULL,
+        buyer_phone TEXT,
+        shipping_address TEXT NOT NULL,
+        total_amount REAL NOT NULL,
+        payment_status TEXT DEFAULT 'completed',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
+    # Create Order Items Table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS order_items (
+        id TEXT PRIMARY KEY,
+        order_id TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        product_title TEXT NOT NULL,
+        price REAL NOT NULL,
+        quantity INTEGER DEFAULT 1,
+        FOREIGN KEY(order_id) REFERENCES orders(id)
+    )
+    ''')
+
+    # Create Wishlist Table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS wishlist (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, product_id)
+    )
+    ''')
+
+    # Create Reviews Table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS reviews (
+        id TEXT PRIMARY KEY,
+        product_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        user_name TEXT NOT NULL,
+        rating INTEGER NOT NULL,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(product_id) REFERENCES products(id)
+    )
+    ''')
+
     conn.commit()
     seed_initial_data(conn)
     conn.close()

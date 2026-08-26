@@ -16,7 +16,10 @@ let state = {
   user: null,
   isLoggedIn: false,
   isGuest: false,
-  csrfToken: ''
+  csrfToken: '',
+  cart: [],
+  wishlist: [],
+  analytics: null
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -557,19 +560,25 @@ function renderBuyerScreen() {
 
       <div id="buyer-product-cards">
         ${state.products.map(p => `
-          <div class="ks-card">
+          <div class="ks-card" style="position:relative;">
+            <button class="wishlist-btn ${state.wishlist.includes(p.id) ? 'active' : ''}" onclick="toggleWishlist('${p.id}')" style="position:absolute; top:12px; right:12px; z-index:10;">
+              <span class="material-icons" style="font-size:18px;">${state.wishlist.includes(p.id) ? 'favorite' : 'favorite_border'}</span>
+            </button>
             <img src="${p.photo_url}" alt="${p.title}" style="width:100%; height:140px; object-fit:cover; border-radius:var(--radius-sm); margin-bottom:8px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <div>
                 <h4 style="margin:0;">${p.title}</h4>
-                <p style="font-size:0.78rem; margin:2px 0 6px 0;">${p.region}</p>
+                <p style="font-size:0.78rem; margin:2px 0 6px 0; color:#666;">${p.region}</p>
               </div>
               <div style="font-weight:800; color:var(--color-terracotta-dark); font-size:1.1rem;">₹${p.final_price}</div>
             </div>
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-              <span class="ks-tag ks-tag-sage"><span class="material-icons" style="font-size:10px; vertical-align:middle;">verified</span> Provenance Certified</span>
-              ${p.certificate_id ? `<a href="/certificate/${p.certificate_id}" target="_blank" class="btn-secondary" style="font-size:0.75rem; padding:4px 10px;">Verify Certificate</a>` : ''}
+              <span class="ks-tag ks-tag-sage"><span class="material-icons" style="font-size:10px; vertical-align:middle;">verified</span> Certified</span>
+              <div style="display:flex; gap:6px;">
+                ${p.certificate_id ? `<a href="/certificate/${p.certificate_id}" target="_blank" class="btn-secondary" style="font-size:0.72rem; padding:4px 8px;">Verify QR</a>` : ''}
+                <button class="ks-btn ks-btn-primary" onclick="addToCart('${p.id}')" style="font-size:0.75rem; padding:4px 10px; border-radius:var(--radius-pill);">+ Cart</button>
+              </div>
             </div>
           </div>
         `).join('')}
@@ -1055,4 +1064,161 @@ function showToast(msg) {
   toast.textContent = msg;
   document.body.appendChild(toast);
   setTimeout(() => { toast.remove(); }, 3500);
+}
+
+/* ==========================================================================
+   E-COMMERCE & ARTISAN DASHBOARD CONTROLLERS
+   ========================================================================== */
+
+function addToCart(productId) {
+  const prod = state.products.find(p => p.id === productId);
+  if (!prod) return;
+
+  const existing = state.cart.find(item => item.id === productId);
+  if (existing) {
+    existing.quantity = (existing.quantity || 1) + 1;
+  } else {
+    state.cart.push({ ...prod, quantity: 1 });
+  }
+
+  updateCartBadge();
+  showToast(`Added "${prod.title}" to Cart!`);
+}
+
+function removeFromCart(productId) {
+  state.cart = state.cart.filter(item => item.id !== productId);
+  updateCartBadge();
+  renderCartItems();
+}
+
+function updateCartBadge() {
+  const badge = document.getElementById('cart-badge-count');
+  if (!badge) return;
+  const count = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function toggleCartDrawer() {
+  const drawer = document.getElementById('cart-drawer-overlay');
+  if (!drawer) return;
+  if (drawer.style.display === 'none' || !drawer.style.display) {
+    renderCartItems();
+    drawer.style.display = 'flex';
+  } else {
+    drawer.style.display = 'none';
+  }
+}
+
+function renderCartItems() {
+  const container = document.getElementById('cart-items-list');
+  const totalPriceEl = document.getElementById('cart-total-price');
+  if (!container) return;
+
+  if (state.cart.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px 10px; color:#888;">
+        <span class="material-icons" style="font-size:48px; opacity:0.4;">remove_shopping_cart</span>
+        <p style="margin-top:8px;">Your cart is empty.</p>
+      </div>
+    `;
+    if (totalPriceEl) totalPriceEl.textContent = '₹0';
+    return;
+  }
+
+  let total = 0;
+  container.innerHTML = state.cart.map(item => {
+    const itemTotal = item.final_price * item.quantity;
+    total += itemTotal;
+    return `
+      <div class="cart-item-card">
+        <img src="${item.photo_url}" alt="${item.title}" class="cart-item-img">
+        <div class="cart-item-details">
+          <div class="cart-item-title">${item.title}</div>
+          <div class="cart-item-price">₹${item.final_price} × ${item.quantity}</div>
+        </div>
+        <button class="wishlist-btn" onclick="removeFromCart('${item.id}')" title="Remove Item">
+          <span class="material-icons" style="font-size:18px; color:#888;">delete</span>
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  if (totalPriceEl) totalPriceEl.textContent = `₹${total}`;
+}
+
+function openCheckoutModal() {
+  if (state.cart.length === 0) {
+    showToast('Your cart is empty!');
+    return;
+  }
+  toggleCartDrawer();
+  const modal = document.getElementById('checkout-modal-overlay');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeCheckoutModal() {
+  const modal = document.getElementById('checkout-modal-overlay');
+  if (modal) modal.style.display = 'none';
+}
+
+async function handleCheckoutSubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById('checkout-name').value;
+  const email = document.getElementById('checkout-email').value;
+  const phone = document.getElementById('checkout-phone').value;
+  const address = document.getElementById('checkout-address').value;
+  const total = state.cart.reduce((sum, item) => sum + (item.final_price * item.quantity), 0);
+
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: state.cart,
+        buyer_name: name,
+        buyer_email: email,
+        buyer_phone: phone,
+        shipping_address: address,
+        total_amount: total
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.cart = [];
+      updateCartBadge();
+      closeCheckoutModal();
+      showToast(data.message || 'Order placed successfully!');
+    } else {
+      alert(data.message || 'Checkout failed.');
+    }
+  } catch (err) {
+    alert('Network error during checkout.');
+  }
+}
+
+async function toggleWishlist(productId) {
+  try {
+    const res = await fetch('/api/wishlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.action === 'added') {
+        if (!state.wishlist.includes(productId)) state.wishlist.push(productId);
+      } else {
+        state.wishlist = state.wishlist.filter(id => id !== productId);
+      }
+      showToast(data.message);
+      renderScreen();
+    }
+  } catch (err) {
+    console.error("Wishlist error:", err);
+  }
 }
