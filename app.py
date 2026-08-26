@@ -14,6 +14,7 @@ app = Flask(
     template_folder=os.path.join(BASE_DIR, 'templates'),
     static_folder=os.path.join(BASE_DIR, 'static')
 )
+app.url_map.strict_slashes = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'karigar_setu_secret_key_sih_2026')
 app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
