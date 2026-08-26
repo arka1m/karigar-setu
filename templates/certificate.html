@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authenticity Certificate {{ cert.id }} | Karigar Setu</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body {
+      background-color: var(--color-cream);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .certificate-card {
+      max-width: 600px;
+      width: 100%;
+      background: #FFF;
+      border: 6px double var(--color-terracotta-dark);
+      border-radius: var(--radius-lg);
+      padding: 36px 28px;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+      position: relative;
+    }
+    .watermark-seal {
+      width: 90px;
+      height: 90px;
+      background: var(--color-terracotta);
+      color: #FFF;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      box-shadow: 0 4px 14px rgba(184, 80, 66, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="certificate-card">
+    <div class="watermark-seal">
+      <span class="material-icons">verified</span>
+    </div>
+
+    <h1 style="font-family:var(--font-heading); color:var(--color-terracotta-dark); margin-bottom:4px;">
+      Certificate of Digital Authenticity
+    </h1>
+    <p style="font-size:0.85rem; color:var(--color-sage); font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+      Ministry of Textiles & Karigar Setu Verified Provenance
+    </p>
+
+    <div style="background:var(--color-sand); padding:10px; border-radius:var(--radius-pill); margin:18px 0; font-size:0.85rem; font-weight:700; color:var(--color-terracotta-dark);">
+      Certificate ID: {{ cert.id }}
+    </div>
+
+    <img src="{{ cert.photo_url }}" alt="{{ cert.title }}" style="width:100%; max-height:220px; object-fit:cover; border-radius:var(--radius-md); margin-bottom:16px;">
+
+    <h2>{{ cert.title }}</h2>
+    <p style="font-size:0.95rem; color:#5A443B;">{{ cert.story }}</p>
+
+    <div style="text-align:left; background:#FBF9F3; padding:16px; border-radius:var(--radius-md); margin:16px 0; border:1px solid var(--color-border);">
+      <p style="margin-bottom:6px;"><strong>Artisan:</strong> {{ cert.artisan_name }}</p>
+      <p style="margin-bottom:6px;"><strong>Craft Cluster:</strong> {{ cert.craft_cluster }} ({{ cert.artisan_region }})</p>
+      <p style="margin-bottom:6px;"><strong>Govt Enrolment ID:</strong> {{ cert.gst_or_udyam_id or 'UDYAM-WB-03-0019284' }}</p>
+      <p style="margin-bottom:6px;"><strong>Materials Used:</strong> 
+        {% for m in cert.materials %}
+          <span class="ks-tag ks-tag-sage">{{ m }}</span>
+        {% endfor %}
+      </p>
+      <p style="margin-bottom:0;"><strong>Fair Listed Price:</strong> ₹{{ cert.final_price }}</p>
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-weight:700; font-size:0.85rem; color:var(--color-terracotta-dark); margin-bottom:6px;">Scannable QR Verification Link:</p>
+      <img src="{{ qr_b64 }}" alt="QR Code" style="width:140px; height:140px; border:2px solid var(--color-border); border-radius:8px;">
+    </div>
+
+    <div style="background:#2A150F; color:var(--color-sand); padding:10px; border-radius:var(--radius-sm); font-family:monospace; font-size:0.65rem; word-break:break-all;">
+      HMAC-SHA256 Signature: {{ cert.hash_signature }}
+    </div>
+
+    <div style="margin-top:20px;">
+      <a href="/" class="btn-secondary" style="text-decoration:none;">Back to Karigar Setu App</a>
+    </div>
+  </div>
+
+</body>
+</html>
