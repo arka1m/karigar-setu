@@ -7,6 +7,7 @@ from database import get_db, init_db
 from ai_engine import analyze_product_image, generate_ai_draft, calculate_fair_price
 from certificate_engine import issue_authenticity_certificate, generate_qr_code_base64
 from marketplace_adapters import sync_product_to_channels, ADAPTERS
+from auth import auth_bp
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(
@@ -16,8 +17,13 @@ app = Flask(
 )
 app.url_map.strict_slashes = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'karigar_setu_secret_key_sih_2026')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Register Authentication Blueprint
+app.register_blueprint(auth_bp)
 
 # Initialize Database on boot
 init_db()

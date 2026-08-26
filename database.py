@@ -3,6 +3,7 @@ import os
 import json
 import uuid
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 
 DB_FILE = os.path.join(os.path.dirname(__file__), 'karigar_setu.db')
 
@@ -18,6 +19,25 @@ def get_db():
 def init_db():
     conn = get_db()
     cursor = conn.cursor()
+
+    # Create Users Table for Authentication
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        full_name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        phone TEXT,
+        password_hash TEXT NOT NULL,
+        role TEXT DEFAULT 'buyer',
+        email_verified INTEGER DEFAULT 1,
+        otp_code TEXT,
+        otp_expires_at TIMESTAMP,
+        failed_login_attempts INTEGER DEFAULT 0,
+        lockout_until TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_login TIMESTAMP
+    )
+    ''')
 
     # Create Artisans Table
     cursor.execute('''
@@ -152,6 +172,23 @@ def seed_initial_data(conn):
             INSERT INTO craft_benchmarks (craft_type, primary_material, avg_material_cost, labor_rate_per_hr, avg_crafting_hours)
             VALUES (?, ?, ?, ?, ?)
         ''', crafts_data)
+
+    # Ensure default primary user exists
+    sample_user_email = "artisan.ramesh@karigarsetu.in"
+    cursor.execute("SELECT COUNT(*) FROM users WHERE email = ?", (sample_user_email,))
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO users (id, full_name, email, phone, password_hash, role, email_verified)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            "user_ramesh_01",
+            "Ramesh Prajapati",
+            sample_user_email,
+            "+91 98765 43210",
+            generate_password_hash("Karigar@2026"),
+            "artisan",
+            1
+        ))
 
     # Ensure sample artisan, product, and certificate exist
     sample_artisan_id = "artisan_ramesh_01"

@@ -12,7 +12,11 @@ let state = {
   aiDraft: null,
   products: [],
   artisan: null,
-  selectedChannels: ['native', 'india_handmade', 'etsy', 'unfade']
+  selectedChannels: ['native', 'india_handmade', 'etsy', 'unfade'],
+  user: null,
+  isLoggedIn: false,
+  isGuest: false,
+  csrfToken: ''
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
+  await checkAuthStatus();
   await fetchArtisanData();
   await fetchProducts();
   await fetchGapMatrix();
@@ -626,4 +631,428 @@ function switchAppMode(mode) {
 function navigateToFlow(flowName) {
   state.currentFlow = flowName;
   renderScreen();
+}
+
+/* ==========================================================================
+   AUTHENTICATION SYSTEM CLIENT CONTROLLER (AuthManager)
+   ========================================================================== */
+
+async function checkAuthStatus() {
+  try {
+    const res = await fetch('/api/auth/status');
+    const data = await res.json();
+    if (data.success) {
+      state.isLoggedIn = data.logged_in;
+      state.isGuest = data.is_guest;
+      state.csrfToken = data.csrf_token;
+      state.user = data.user;
+    }
+  } catch (err) {
+    console.error("Error checking auth status:", err);
+  }
+  renderUserAuthWidget();
+}
+
+function renderUserAuthWidget() {
+  const container = document.getElementById('user-auth-widget');
+  if (!container) return;
+
+  if (state.isLoggedIn && state.user) {
+    const initials = state.user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const roleBadge = state.user.role === 'artisan' ? 'Artisan' : 'Buyer';
+    container.innerHTML = `
+      <div class="user-avatar-badge" onclick="openAuthModal('profile')" title="View Account Profile">
+        <div class="avatar-circle">${initials}</div>
+        <div style="display:flex; flex-direction:column; line-height:1.2;">
+          <span style="font-weight:700; font-size:0.82rem;">${state.user.full_name}</span>
+          <span style="font-size:0.68rem; opacity:0.85;">${roleBadge} Account</span>
+        </div>
+      </div>
+    `;
+  } else if (state.isGuest) {
+    container.innerHTML = `
+      <button class="auth-header-btn" onclick="openAuthModal('login')" style="background:var(--color-sand); color:var(--color-terracotta-dark);">
+        <span class="material-icons">person_outline</span>
+        <span>Guest Mode (Sign In)</span>
+      </button>
+    `;
+  } else {
+    container.innerHTML = `
+      <button class="auth-header-btn" onclick="openAuthModal('login')">
+        <span class="material-icons">account_circle</span>
+        <span>Sign In / Register</span>
+      </button>
+    `;
+  }
+}
+
+function openAuthModal(viewTab = 'login') {
+  const overlay = document.getElementById('auth-modal-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    switchAuthTab(viewTab);
+  }
+}
+
+function closeAuthModal() {
+  const overlay = document.getElementById('auth-modal-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    hideAuthAlert();
+  }
+}
+
+function switchAuthTab(tab) {
+  hideAuthAlert();
+  
+  const formLogin = document.getElementById('form-login');
+  const formSignup = document.getElementById('form-signup');
+  const formForgot = document.getElementById('form-forgot');
+  const formReset = document.getElementById('form-reset');
+  const viewProfile = document.getElementById('view-profile');
+  const authTabs = document.getElementById('auth-tabs');
+  
+  const tabLogin = document.getElementById('tab-login');
+  const tabSignup = document.getElementById('tab-signup');
+  
+  if (tabLogin) tabLogin.classList.remove('active');
+  if (tabSignup) tabSignup.classList.remove('active');
+  
+  if (formLogin) formLogin.style.display = 'none';
+  if (formSignup) formSignup.style.display = 'none';
+  if (formForgot) formForgot.style.display = 'none';
+  if (formReset) formReset.style.display = 'none';
+  if (viewProfile) viewProfile.style.display = 'none';
+  
+  if (authTabs) authTabs.style.display = (tab === 'login' || tab === 'signup') ? 'flex' : 'none';
+
+  if (tab === 'login') {
+    if (formLogin) formLogin.style.display = 'block';
+    if (tabLogin) tabLogin.classList.add('active');
+  } else if (tab === 'signup') {
+    if (formSignup) formSignup.style.display = 'block';
+    if (tabSignup) tabSignup.classList.add('active');
+  } else if (tab === 'forgot') {
+    if (formForgot) formForgot.style.display = 'block';
+  } else if (tab === 'reset') {
+    if (formReset) formReset.style.display = 'block';
+  } else if (tab === 'profile') {
+    if (viewProfile) viewProfile.style.display = 'block';
+    populateProfileView();
+  }
+}
+
+function showAuthAlert(message, type = 'error') {
+  const box = document.getElementById('auth-alert');
+  if (!box) return;
+  box.className = `auth-alert ${type}`;
+  box.innerHTML = message;
+  box.style.display = 'block';
+}
+
+function hideAuthAlert() {
+  const box = document.getElementById('auth-alert');
+  if (box) box.style.display = 'none';
+}
+
+function togglePasswordVisibility(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const icon = btnEl.querySelector('.material-icons');
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) icon.textContent = 'visibility';
+  } else {
+    input.type = 'password';
+    if (icon) icon.textContent = 'visibility_off';
+  }
+}
+
+function checkSignupPasswordStrength(password) {
+  const fill = document.getElementById('strength-fill');
+  const text = document.getElementById('strength-text');
+  if (!fill || !text) return;
+
+  if (!password) {
+    fill.className = 'strength-fill';
+    fill.style.width = '0%';
+    text.textContent = 'Password must be at least 8 chars with uppercase, number & symbol.';
+    return;
+  }
+
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[!@#$%^&*(),.?":{}|<>_~\-+=]/.test(password)) score++;
+
+  if (score <= 2) {
+    fill.className = 'strength-fill weak';
+    text.textContent = 'Weak: Add uppercase, digits & special characters.';
+  } else if (score <= 4) {
+    fill.className = 'strength-fill medium';
+    text.textContent = 'Medium: Almost strong!';
+  } else {
+    fill.className = 'strength-fill strong';
+    text.textContent = 'Strong Password! Perfect.';
+  }
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  hideAuthAlert();
+  
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const remember_me = document.getElementById('login-remember').checked;
+  const btn = document.getElementById('btn-login-submit');
+
+  try {
+    if (btn) btn.disabled = true;
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, remember_me })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      state.isLoggedIn = true;
+      state.isGuest = false;
+      state.user = data.user;
+      renderUserAuthWidget();
+      closeAuthModal();
+      showToast(data.message || 'Signed in successfully!');
+    } else {
+      showAuthAlert(data.message || 'Login failed.');
+    }
+  } catch (err) {
+    showAuthAlert('Network error. Please try again.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function handleSignupSubmit(e) {
+  e.preventDefault();
+  hideAuthAlert();
+  
+  const full_name = document.getElementById('signup-name').value;
+  const email = document.getElementById('signup-email').value;
+  const phone = document.getElementById('signup-phone').value;
+  const role = document.getElementById('signup-role').value;
+  const password = document.getElementById('signup-password').value;
+  const confirm_password = document.getElementById('signup-confirm-password').value;
+  const btn = document.getElementById('btn-signup-submit');
+
+  if (password !== confirm_password) {
+    showAuthAlert('Passwords do not match.');
+    return;
+  }
+
+  try {
+    if (btn) btn.disabled = true;
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ full_name, email, phone, role, password, confirm_password })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      state.isLoggedIn = true;
+      state.isGuest = false;
+      state.user = data.user;
+      renderUserAuthWidget();
+      closeAuthModal();
+      showToast(data.message || 'Account created successfully!');
+    } else {
+      showAuthAlert(data.message || 'Signup failed.');
+    }
+  } catch (err) {
+    showAuthAlert('Network error. Please try again.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function handleForgotPasswordSubmit(e) {
+  e.preventDefault();
+  hideAuthAlert();
+  
+  const email = document.getElementById('forgot-email').value;
+  const btn = document.getElementById('btn-forgot-submit');
+
+  try {
+    if (btn) btn.disabled = true;
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      document.getElementById('reset-target-email').textContent = email;
+      switchAuthTab('reset');
+      if (data.otp_demo) {
+        document.getElementById('reset-otp').value = data.otp_demo;
+        showAuthAlert(`Demo OTP generated: <strong>${data.otp_demo}</strong> (Auto-filled for testing)`, 'success');
+      } else {
+        showAuthAlert(data.message, 'success');
+      }
+    } else {
+      showAuthAlert(data.message || 'Error sending OTP.');
+    }
+  } catch (err) {
+    showAuthAlert('Network error. Please try again.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function handleResetPasswordSubmit(e) {
+  e.preventDefault();
+  hideAuthAlert();
+  
+  const email = document.getElementById('reset-target-email').textContent;
+  const otp_code = document.getElementById('reset-otp').value;
+  const new_password = document.getElementById('reset-new-password').value;
+  const confirm_password = document.getElementById('reset-confirm-password').value;
+  const btn = document.getElementById('btn-reset-submit');
+
+  if (new_password !== confirm_password) {
+    showAuthAlert('Passwords do not match.');
+    return;
+  }
+
+  try {
+    if (btn) btn.disabled = true;
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp_code, new_password, confirm_password })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      switchAuthTab('login');
+      showAuthAlert(data.message, 'success');
+    } else {
+      showAuthAlert(data.message || 'Password reset failed.');
+    }
+  } catch (err) {
+    showAuthAlert('Network error. Please try again.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function handleContinueAsGuest() {
+  try {
+    const res = await fetch('/api/auth/guest', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      state.isLoggedIn = false;
+      state.isGuest = true;
+      state.user = null;
+      renderUserAuthWidget();
+      closeAuthModal();
+      showToast('Browsing in Guest Mode');
+    }
+  } catch (err) {
+    console.error("Guest mode error:", err);
+  }
+}
+
+async function handleLogout() {
+  try {
+    const res = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      state.isLoggedIn = false;
+      state.isGuest = false;
+      state.user = null;
+      renderUserAuthWidget();
+      closeAuthModal();
+      showToast('Logged out successfully.');
+    }
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
+}
+
+function populateProfileView() {
+  if (!state.user) return;
+  const initials = state.user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  document.getElementById('profile-avatar-letters').textContent = initials;
+  document.getElementById('profile-display-name').textContent = state.user.full_name;
+  document.getElementById('profile-display-email').textContent = state.user.email;
+  document.getElementById('profile-display-role').textContent = state.user.role === 'artisan' ? 'Master Artisan' : 'Artisan Buyer';
+  document.getElementById('profile-edit-name').value = state.user.full_name;
+  document.getElementById('profile-edit-phone').value = state.user.phone || '';
+}
+
+async function handleUpdateProfileSubmit(e) {
+  e.preventDefault();
+  hideAuthAlert();
+  
+  const full_name = document.getElementById('profile-edit-name').value;
+  const phone = document.getElementById('profile-edit-phone').value;
+
+  try {
+    const res = await fetch('/api/auth/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ full_name, phone })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      state.user.full_name = full_name;
+      state.user.phone = phone;
+      renderUserAuthWidget();
+      showAuthAlert(data.message, 'success');
+    } else {
+      showAuthAlert(data.message || 'Profile update failed.');
+    }
+  } catch (err) {
+    showAuthAlert('Network error.');
+  }
+}
+
+async function handleChangePasswordSubmit(e) {
+  e.preventDefault();
+  hideAuthAlert();
+  
+  const current_password = document.getElementById('change-current-password').value;
+  const new_password = document.getElementById('change-new-password').value;
+  const confirm_password = document.getElementById('change-confirm-password').value;
+
+  try {
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_password, new_password, confirm_password })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      document.getElementById('form-change-password').reset();
+      showAuthAlert(data.message, 'success');
+    } else {
+      showAuthAlert(data.message || 'Password update failed.');
+    }
+  } catch (err) {
+    showAuthAlert('Network error.');
+  }
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#4A2318; color:#FFF; padding:12px 20px; border-radius:30px; z-index:99999; font-weight:700; font-size:0.85rem; box-shadow:0 6px 16px rgba(0,0,0,0.3);';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.remove(); }, 3500);
 }

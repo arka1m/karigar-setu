@@ -20,12 +20,21 @@
         <span style="font-size:0.75rem; font-weight:400; opacity:0.8; display:block;">v2 — Gap-Verified Platform</span>
       </div>
     </div>
+    
     <div style="display:flex; align-items:center; gap:16px;">
       <span class="sih-badge">SIH 2026 Entry</span>
       <div class="mode-switcher">
         <button class="mode-btn active" id="btn-mode-artisan" onclick="switchAppMode('artisan')">Artisan App</button>
         <button class="mode-btn" id="btn-mode-buyer" onclick="switchAppMode('buyer')">Buyer Store</button>
         <button class="mode-btn" id="btn-mode-judge" onclick="switchAppMode('judge')">SIH Judge Matrix</button>
+      </div>
+
+      <!-- User Authentication Widget -->
+      <div class="user-auth-widget" id="user-auth-widget">
+        <button class="auth-header-btn" onclick="openAuthModal('login')">
+          <span class="material-icons">account_circle</span>
+          <span>Sign In</span>
+        </button>
       </div>
     </div>
   </header>
@@ -92,6 +101,217 @@
     </aside>
 
   </main>
+
+  <!-- Auth Modal Overlay -->
+  <div class="auth-modal-overlay" id="auth-modal-overlay" style="display:none;">
+    <div class="auth-modal-card">
+      <button class="auth-modal-close" onclick="closeAuthModal()"><span class="material-icons">close</span></button>
+      
+      <!-- Modal Navigation Tabs -->
+      <div class="auth-tabs" id="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Create Account</button>
+      </div>
+
+      <!-- Alert Container -->
+      <div class="auth-alert" id="auth-alert" style="display:none;"></div>
+
+      <!-- 1. LOGIN VIEW -->
+      <form id="form-login" onsubmit="handleLoginSubmit(event)">
+        <div class="auth-form-group">
+          <label><span class="material-icons">email</span> Email Address</label>
+          <input type="email" id="login-email" required placeholder="artisan@karigarsetu.in">
+        </div>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">lock</span> Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="login-password" required placeholder="••••••••">
+            <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('login-password', this)">
+              <span class="material-icons">visibility_off</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-flex-row">
+          <label class="auth-checkbox-label">
+            <input type="checkbox" id="login-remember"> Remember Me
+          </label>
+          <a href="#" onclick="switchAuthTab('forgot')" class="auth-link">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="auth-submit-btn" id="btn-login-submit">
+          <span class="btn-text">Sign In</span>
+          <span class="material-icons btn-icon">arrow_forward</span>
+        </button>
+
+        <div class="auth-divider"><span>OR</span></div>
+
+        <button type="button" class="guest-btn" onclick="handleContinueAsGuest()">
+          <span class="material-icons">person_outline</span>
+          Continue as Guest
+        </button>
+      </form>
+
+      <!-- 2. SIGNUP VIEW -->
+      <form id="form-signup" onsubmit="handleSignupSubmit(event)" style="display:none;">
+        <div class="auth-form-group">
+          <label><span class="material-icons">person</span> Full Name</label>
+          <input type="text" id="signup-name" required placeholder="Ramesh Prajapati">
+        </div>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">email</span> Email Address</label>
+          <input type="email" id="signup-email" required placeholder="artisan@karigarsetu.in">
+        </div>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">phone</span> Mobile Phone (Optional)</label>
+          <input type="tel" id="signup-phone" placeholder="+91 98765 43210">
+        </div>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">badge</span> Account Role</label>
+          <select id="signup-role" class="auth-select">
+            <option value="artisan">Master Artisan / Craftsman</option>
+            <option value="buyer" selected>Artisan Buyer / Collector</option>
+          </select>
+        </div>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">lock</span> Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="signup-password" required placeholder="Min 8 chars, A-Z, 0-9, symbol" oninput="checkSignupPasswordStrength(this.value)">
+            <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('signup-password', this)">
+              <span class="material-icons">visibility_off</span>
+            </button>
+          </div>
+          <!-- Password Strength Meter -->
+          <div class="strength-meter-bar">
+            <div class="strength-fill" id="strength-fill"></div>
+          </div>
+          <span class="strength-text" id="strength-text">Password must be at least 8 chars with uppercase, number & symbol.</span>
+        </div>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">lock_reset</span> Confirm Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="signup-confirm-password" required placeholder="Re-enter password">
+            <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('signup-confirm-password', this)">
+              <span class="material-icons">visibility_off</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="auth-submit-btn" id="btn-signup-submit">
+          <span class="btn-text">Create Free Account</span>
+          <span class="material-icons btn-icon">check_circle</span>
+        </button>
+      </form>
+
+      <!-- 3. FORGOT PASSWORD / OTP VIEW -->
+      <form id="form-forgot" onsubmit="handleForgotPasswordSubmit(event)" style="display:none;">
+        <h3 class="auth-modal-title"><span class="material-icons">vpn_key</span> Reset Your Password</h3>
+        <p class="auth-subtitle">Enter your registered email address to receive a secure 6-digit OTP reset code (valid for 10 minutes).</p>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">email</span> Registered Email</label>
+          <input type="email" id="forgot-email" required placeholder="artisan@karigarsetu.in">
+        </div>
+
+        <button type="submit" class="auth-submit-btn" id="btn-forgot-submit">
+          <span class="btn-text">Send 6-Digit OTP</span>
+          <span class="material-icons btn-icon">send</span>
+        </button>
+
+        <div style="text-align:center; margin-top:16px;">
+          <a href="#" onclick="switchAuthTab('login')" class="auth-link">Back to Sign In</a>
+        </div>
+      </form>
+
+      <!-- 4. OTP & RESET PASSWORD VIEW -->
+      <form id="form-reset" onsubmit="handleResetPasswordSubmit(event)" style="display:none;">
+        <h3 class="auth-modal-title"><span class="material-icons">lock_reset</span> Verify OTP & Reset Password</h3>
+        <p class="auth-subtitle">Enter the 6-digit OTP code sent to <strong id="reset-target-email">your email</strong>.</p>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">pin</span> 6-Digit OTP Code</label>
+          <input type="text" id="reset-otp" maxlength="6" required placeholder="123456" style="letter-spacing:6px; font-weight:700; font-size:1.2rem; text-align:center;">
+        </div>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">lock</span> New Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="reset-new-password" required placeholder="Min 8 chars, A-Z, 0-9, symbol">
+            <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('reset-new-password', this)">
+              <span class="material-icons">visibility_off</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label><span class="material-icons">lock_reset</span> Confirm New Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="reset-confirm-password" required placeholder="Re-enter new password">
+            <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('reset-confirm-password', this)">
+              <span class="material-icons">visibility_off</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="auth-submit-btn" id="btn-reset-submit">
+          <span class="btn-text">Reset Password & Login</span>
+          <span class="material-icons btn-icon">verified_user</span>
+        </button>
+      </form>
+
+      <!-- 5. USER PROFILE VIEW -->
+      <div id="view-profile" style="display:none;">
+        <div class="profile-header-card">
+          <div class="profile-avatar-circle" id="profile-avatar-letters">RP</div>
+          <div class="profile-info">
+            <h3 id="profile-display-name">Ramesh Prajapati</h3>
+            <p id="profile-display-email">artisan.ramesh@karigarsetu.in</p>
+            <span class="badge-role" id="profile-display-role">Master Artisan</span>
+          </div>
+        </div>
+
+        <form id="form-update-profile" onsubmit="handleUpdateProfileSubmit(event)" style="margin-top:16px;">
+          <div class="auth-form-group">
+            <label><span class="material-icons">person</span> Full Name</label>
+            <input type="text" id="profile-edit-name" required>
+          </div>
+          <div class="auth-form-group">
+            <label><span class="material-icons">phone</span> Phone Number</label>
+            <input type="tel" id="profile-edit-phone">
+          </div>
+          <button type="submit" class="auth-submit-btn" style="background:#4A2318;">Update Profile Info</button>
+        </form>
+
+        <hr style="margin:20px 0; border:0; border-top:1px solid #EAE0D5;">
+
+        <form id="form-change-password" onsubmit="handleChangePasswordSubmit(event)">
+          <h4 style="margin-bottom:12px; font-size:0.95rem; color:#4A2318;"><span class="material-icons" style="font-size:1.1rem;">security</span> Change Password</h4>
+          <div class="auth-form-group">
+            <input type="password" id="change-current-password" required placeholder="Current Password">
+          </div>
+          <div class="auth-form-group">
+            <input type="password" id="change-new-password" required placeholder="New Password (min 8 chars)">
+          </div>
+          <div class="auth-form-group">
+            <input type="password" id="change-confirm-password" required placeholder="Confirm New Password">
+          </div>
+          <button type="submit" class="auth-submit-btn" style="background:#C85A32;">Change Password</button>
+        </form>
+
+        <button type="button" class="logout-btn" onclick="handleLogout()" style="margin-top:20px; width:100%;">
+          <span class="material-icons">logout</span>
+          Sign Out of Account
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <script src="/static/js/app.js"></script>
 </body>
